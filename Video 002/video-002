@@ -1,0 +1,101 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import datetime  # Import datetime for time tracking
+
+from mandala_art import mandala
+
+# Generate angle values for a complex flower-like pattern
+angles = np.linspace(0, 24 * np.pi, 10000)
+radii = 5 + 4 * np.sin(6 * angles)
+x = radii * np.cos(angles)
+y = radii * np.sin(angles)
+colors = angles % (2 * np.pi)
+
+# Set up the plotting area
+fig, ax = plt.subplots(figsize=(13.5, 10.8))
+ax.set_aspect('equal')
+fig.patch.set_facecolor('#181818')
+ax.set_facecolor('#181818')
+ax.axis('off')
+ax.set_xlim(-10, 10)
+ax.set_ylim(-10, 10)
+
+# Initialize the scatter plot for dynamic color changes
+scatter = ax.scatter([], [], c=[], cmap='spring', s=1)
+
+# Variable speed settings (points per frame)
+variable_speed_zoom_out = 10000
+variable_speed_medium_zoom = 200
+variable_speed_close_zoom = 200 
+
+# Speed settings for each phase (points per frame)
+speeds = {
+    'zoom_out': 10 * variable_speed_zoom_out,
+    'medium_zoom': 10 * variable_speed_medium_zoom,
+    'close_zoom': 10 * variable_speed_close_zoom,
+}
+
+# Duration of each zoom phase in seconds
+phase_durations = {
+    'zoom_out': 10,
+    'medium_zoom': 0,
+    'close_zoom': 0,
+}
+
+# Zoom scales for each phase
+zoom_scales = {
+    'zoom_out': 10,
+    'medium_zoom': 5,
+    'close_zoom': 2,
+}
+
+# Record the start time of the animation
+start_time = datetime.datetime.now()
+
+def init():
+    """Initialize the animation by setting up the scatter plot."""
+    scatter.set_offsets(np.empty((0, 2)))  # Set to empty 2D array for correct handling
+    return scatter,
+
+def get_current_phase(elapsed_time):
+    """Get the current phase based on elapsed time."""
+    total_duration = sum(phase_durations.values())
+    phase_time = elapsed_time % total_duration
+    if phase_time < phase_durations['zoom_out']:
+        return 'zoom_out'
+    elif phase_time < phase_durations['zoom_out'] + phase_durations['medium_zoom']:
+        return 'medium_zoom'
+    else:
+        return 'close_zoom'
+
+def update(frame):
+    """Update function to animate the flower-like pattern with dynamic color changes and zoom levels."""
+    elapsed_time = (datetime.datetime.now() - start_time).total_seconds()
+    current_phase = get_current_phase(elapsed_time)
+    
+    # Modulate speed progressively
+    speed_modulation = np.sin(elapsed_time / 10) * 10 + 20  # Example modulation function
+    num_points = int(elapsed_time * speed_modulation) % len(x)
+    
+    # Update data for scatter plot
+    data = np.column_stack((x[:num_points], y[:num_points]))
+    scatter.set_offsets(data)
+    scatter.set_array(colors[:num_points])
+
+    # Adjust the zoom level
+    zoom_scale = zoom_scales[current_phase]
+    ax.set_xlim(-zoom_scale, zoom_scale)
+    ax.set_ylim(-zoom_scale, zoom_scale)
+    
+    return scatter,
+
+total_frames_for_video = 1000000  # This is an example value
+
+# Set up and start the animation
+ani = FuncAnimation(fig, update, init_func=init, frames=total_frames_for_video, interval=1, blit=False)
+
+# Uncomment the line below to save the animation with high quality
+# ani.save(r'E:\Windows Daily Usage\Documents\01 Berckan\Reveries\Youtube\programming\video\zoom_in.mp4', writer='ffmpeg', fps=60, bitrate=5000)
+
+plt.show()

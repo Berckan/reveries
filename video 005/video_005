@@ -1,0 +1,38 @@
+import turtle
+
+# Setup the screen
+wn = turtle.Screen()
+wn.bgcolor("black")
+
+# Create the turtle
+t = turtle.Turtle()
+t.speed(0)
+t.color("white")
+
+# Function to draw a circle with a given radius and position
+def draw_circle(radius, x, y):
+    t.penup()
+    t.goto(x, y)
+    t.pendown()
+    t.circle(radius)
+
+# Function to draw a petal-like pattern
+def draw_petal(radius, number_of_petals):
+    for _ in range(number_of_petals):
+        draw_circle(radius, 0, -radius)
+        t.left(360 / number_of_petals)
+
+# Function to draw the complete pattern
+def draw_pattern(layers, initial_radius, petals):
+    for i in range(layers):
+        radius = initial_radius + (initial_radius * i)
+        draw_petal(radius, petals + (i * 6))  # Increment the number of petals with each layer
+
+# Hide turtle
+t.hideturtle()
+
+# Draw the pattern
+draw_pattern(3, 50, 6)  # Draw 3 layers, starting with a radius of 50, and 6 petals on the first layer
+
+# Keep the window open until it's clicked
+wn.mainloop()

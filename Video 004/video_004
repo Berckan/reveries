@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# Parameters for the Lissajous curve
+A = 1  # Amplitude for x
+B = 1  # Amplitude for y
+a = 5  # Frequency for x
+b = 4  # Frequency for y
+delta = np.pi / 2  # Phase offset for x
+
+# Create a figure and an axis
+fig, ax = plt.subplots()
+ax.axis('off')  # Turn off the axis
+fig.patch.set_facecolor('black')  # Set the figure background to black
+ax.set_facecolor('black')  # Set the axes background to black
+
+# Setting the limits and aspect ratio
+ax.set_xlim(-A, A)
+ax.set_ylim(-B, B)
+ax.set_aspect('equal', adjustable='box')
+
+# Initialize a line plot
+line, = ax.plot([], [], color='white', lw=2)
+
+# Initialization function: plot the background of each frame
+def init():
+    line.set_data([], [])
+    return line,
+
+# Animation function which updates the plot
+def animate(i):
+    # Update the phase
+    current_delta = delta + np.pi * (i / 100)
+    
+    # Create the Lissajous curve
+    t = np.linspace(0, 2 * np.pi, 1000)
+    x = A * np.sin(a * t + current_delta)
+    y = B * np.sin(b * t)
+    
+    line.set_data(x, y)
+    return line,
+
+# Call the animator
+ani = FuncAnimation(fig, animate, init_func=init, frames=200, interval=20, blit=True)
+
+# Show the animation
+plt.show()

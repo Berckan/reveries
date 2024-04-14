@@ -1,0 +1,88 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import datetime
+
+# Define a function to generate complex pattern points
+def generate_complex_pattern(theta):
+    r = np.sin(2 * np.pi * theta)
+    return r * np.exp(1j * theta)
+
+# Variables for zoom and speed control
+variable_speed_zoom_out = 2000
+variable_speed_medium_zoom = 200
+variable_speed_close_zoom = 200
+
+# Speed settings for each phase (points per frame)
+speeds = {
+    'zoom_out': variable_speed_zoom_out,
+    'medium_zoom': variable_speed_medium_zoom,
+    'close_zoom': variable_speed_close_zoom,
+}
+
+# Zoom scales for each phase
+zoom_scales = {
+    'zoom_out': 2.5,
+    'medium_zoom': 1.5,
+    'close_zoom': 0.4,
+}
+
+# Generate theta values for the complex pattern
+theta_values = np.linspace(0, 24 * np.pi, 150000)  # Total number of frames set to 1,000,000 for simplicity
+
+# Set up the plotting area
+fig, ax = plt.subplots(figsize=(8, 8))
+ax.set_aspect('equal')
+fig.patch.set_facecolor('#181818')
+ax.set_facecolor('#181818')
+ax.axis('off')
+ax.set_xlim(-zoom_scales['zoom_out'], zoom_scales['zoom_out'])
+ax.set_ylim(-zoom_scales['zoom_out'], zoom_scales['zoom_out'])
+
+# Initialize the line plot
+line, = ax.plot([], [], color='white', linewidth=0.5)
+
+# Initialize function to set up the background of each frame
+def init():
+    line.set_data([], [])
+    return (line,)
+
+# Infinite generator to yield frame numbers
+def frame_gen():
+    frame = 0
+    while True:  # Infinite loop
+        yield frame
+        frame += 1
+
+# Function to calculate the current zoom scale based on the frame number
+def get_zoom_scale(frame_number):
+    phase_length = 1000000000 // 3
+    cycle_frame_number = frame_number % phase_length
+    if cycle_frame_number < phase_length / 3:
+        return 'zoom_out'
+    elif cycle_frame_number < 2 * (phase_length / 3):
+        return 'medium_zoom'
+    else:
+        return 'close_zoom'
+
+# Update function for the animation
+def update(frame):
+    current_phase = get_zoom_scale(frame)
+    zoom_scale = zoom_scales[current_phase]
+    
+    # Generate the pattern points
+    end_index = (frame * speeds[current_phase]) % 1000000
+    pattern_points = generate_complex_pattern(theta_values[:end_index])
+    line.set_data(np.real(pattern_points), np.imag(pattern_points))
+
+    # Update zoom level based on current phase
+    ax.set_xlim(-zoom_scale, zoom_scale)
+    ax.set_ylim(-zoom_scale, zoom_scale)
+
+    return (line,)
+
+# Create the animation
+ani = FuncAnimation(fig, update, frames=frame_gen(), init_func=init, blit=False, interval=20, cache_frame_data=False)
+
+# Display the animation
+plt.show()
